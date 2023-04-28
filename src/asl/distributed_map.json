@@ -1,0 +1,52 @@
+{
+  "Comment": "A distrubuted map example",
+  "StartAt": "Map",
+  "States": {
+    "Map": {
+      "Type": "Map",
+      "MaxConcurrency": 10,
+      "ItemReader": {
+        "Resource": "arn:aws:states:::s3:listObjectsV2",
+        "Parameters": {
+          "Bucket.$": "$.bucket"
+        }
+      },
+      "ItemBatcher": {
+        "MaxItemsPerBatch": 1,
+        "BatchInput": {
+          "bucket.$": "$.bucket",
+          "tag_key.$": "$.tag_key",
+          "tag_value.$": "$.tag_value"
+        }
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "PutObjectTag",
+        "States": {
+          "PutObjectTag": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::aws-sdk:s3:putObjectTagging",
+            "Parameters": {
+              "Bucket.$": "$.BatchInput.bucket",
+              "Key.$": "$.Items[0].Key",
+              "Tagging": {
+                "TagSet": [
+                  {
+                    "Key.$": "$.BatchInput.tag_key",
+                    "Value.$": "$.BatchInput.tag_value"
+                  }
+                ]
+              }
+            },
+            "End": true
+          }
+        }
+      },
+      "Label": "Map",
+      "End": true
+    }
+  }
+}

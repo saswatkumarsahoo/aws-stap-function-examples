@@ -1,0 +1,5 @@
+{
+    "bucket": "stepfunctions-dist-map-2023",
+    "tag_key": "hello",
+    "tag_value": "world"
+  }
